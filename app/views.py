@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.contrib.auth import login,authenticate,logout
 from .tasks import add,sendemail
 from datetime import datetime,timedelta,time
-
+from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 
 
@@ -110,7 +110,7 @@ def newtask(request):
         print(tarix)
         
         recipient_list = [request.user.email,]
-        sendemail.apply_async(("xatirlatma ","sizin tapsirigin bitme vaxtina 1 gun ve ya daha az qalib .","todoapp98@gmail.com",recipient_list), countdown=tarix)
+        sendemail.apply_async(("xatirlatma ","sizin tapsirigin bitme vaxtina 1 gun ve ya daha az qalib .","todoapp98@gmail.com",recipient_list), countdown=200)
            
 
         messages.success(request,"Yeni Task Ugurla yaradildi .",extra_tags="success")
@@ -118,22 +118,28 @@ def newtask(request):
 
     return render(request,"newtask.html",Context)
 
-
+@login_required(login_url = 'login')
 def details(request,pk):
-
     task = get_object_or_404(newtasks,pk=pk)
+    print("taski hesabinda paylasan ",task.author)
+    #print(task.paylasan)
+    print("indiki hesab",request.user)
+    if  task.author == request.user or task.paylasan == request.user:
+        serhler = serhs.objects.filter(task_id = pk)
+        
+        Context = {
+            'task':task,
+            'serhler':serhler
+        }
+        return render(request,"details.html",Context)
+        print("duz")
+    else:
+        print("sehf")
+    return render(request,"dashboard.html")
+    
 
-    serhler = serhs.objects.filter(task_id = pk)
 
-    Context = {
-        'task':task,
-        'serhler':serhler
-    }
-
-    return render(request,"details.html",Context)
-
-
-
+@login_required(login_url = 'login')
 def update(request,pk):
     task = get_object_or_404(newtasks,pk=pk)
     form = addTask(instance=task,data=request.POST or None)
@@ -146,14 +152,14 @@ def update(request,pk):
         'task':task
     }
     return render(request,"update.html",context=Context)
-
+@login_required(login_url = 'login')
 def delete(request,pk):
     task = get_object_or_404(newtasks,pk=pk)
     tasklar = newtasks.objects.filter(title=task.title,text=task.text,created_date = task.created_date)
     for data in tasklar:
         data.delete()
     return redirect("dashboard")
-
+@login_required(login_url = 'login')
 def share(request,pk):
     task = get_object_or_404(newtasks,pk=pk)
     form = Paylas(request.POST or None)
@@ -178,7 +184,7 @@ def share(request,pk):
 
     return render(request,"share.html",Context)
 
-
+@login_required(login_url = 'login')
 def comments(request,pk):
 
     form = addComent(request.POST or None)
@@ -211,7 +217,7 @@ def comments(request,pk):
 
     return render(request,"comments.html",Context)
 
-
+@login_required(login_url = 'login')
 def deletecoment(request,pk):
     serhim = get_object_or_404(serhs,pk=pk)
 
@@ -225,7 +231,7 @@ def deletecoment(request,pk):
 
 
 
-
+@login_required(login_url = 'login')
 def updatecoment(request,pk):
     serhim = get_object_or_404(serhs,pk=pk)
     

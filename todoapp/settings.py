@@ -93,8 +93,8 @@ DATABASES = {
     }
 }
 
-BROKER_URL = 'amqp://localhost'
-CELERY_RESULT_BACKEND = 'rpc://localhost'
+CELERY_BROKER_URL = 'amqp://guest:guest@localhost'
+CELERY_RESULT_BACKEND = 'rpc://guest:guest@localhost'
 # Celery Data Format
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
